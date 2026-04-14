@@ -1,47 +1,51 @@
-import { LayoutDashboard, Inbox, Shield, Eye, Brain, Gavel, Settings } from "lucide-react";
+import { Brain, Eye, Gavel, Inbox, LayoutDashboard, LogOut, Settings, Shield } from "lucide-react";
+import { matchPath, useLocation } from "react-router-dom";
 import { NavLink } from "@/components/NavLink";
-import { useLocation } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarFooter,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useAuth } from "@/hooks/useAuth";
+import { heroCaseId } from "@/lib/cases";
 
 const mainNav = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Case Queue", url: "/cases", icon: Inbox },
 ];
 
-const caseNav = [
-  { title: "Visual Analysis", url: "/cases/1/visual", icon: Eye },
-  { title: "Risk & Reasoning", url: "/cases/1/risk", icon: Brain },
-  { title: "Actions", url: "/cases/1/actions", icon: Gavel },
-];
-
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
+  const { signOut, user } = useAuth();
   const location = useLocation();
+  const caseMatch = matchPath("/cases/:caseId/*", location.pathname) ?? matchPath("/cases/:caseId", location.pathname);
+  const activeCaseId = caseMatch?.params.caseId ?? heroCaseId;
+  const caseNav = [
+    { title: "Visual Analysis", url: `/cases/${activeCaseId}/visual`, icon: Eye },
+    { title: "Risk & Reasoning", url: `/cases/${activeCaseId}/risk`, icon: Brain },
+    { title: "Actions", url: `/cases/${activeCaseId}/actions`, icon: Gavel },
+  ];
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border">
       <SidebarContent className="pt-4">
-        <div className={`px-4 mb-6 ${collapsed ? "px-2" : ""}`}>
+        <div className={`mb-6 px-4 ${collapsed ? "px-2" : ""}`}>
           <div className="flex items-center gap-2">
-            <Shield className="h-7 w-7 text-primary shrink-0" />
-            {!collapsed && <span className="font-display text-lg font-bold text-gradient-gold">LuxeResolve</span>}
+            <Shield className="h-7 w-7 shrink-0 text-primary" />
+            {!collapsed ? <span className="font-display text-lg font-bold text-gradient-gold">LuxeResolve</span> : null}
           </div>
         </div>
 
         <SidebarGroup>
-          <SidebarGroupLabel className="text-muted-foreground/60 text-[10px] uppercase tracking-widest">Overview</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-muted-foreground/60">Overview</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {mainNav.map((item) => (
@@ -50,11 +54,11 @@ export function AppSidebar() {
                     <NavLink
                       to={item.url}
                       end
-                      className="hover:bg-sidebar-accent transition-colors"
-                      activeClassName="bg-sidebar-accent text-primary font-medium"
+                      className="transition-colors hover:bg-sidebar-accent"
+                      activeClassName="bg-sidebar-accent font-medium text-primary"
                     >
                       <item.icon className="mr-2 h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
+                      {!collapsed ? <span>{item.title}</span> : null}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -64,7 +68,7 @@ export function AppSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel className="text-muted-foreground/60 text-[10px] uppercase tracking-widest">Case Tools</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-muted-foreground/60">Case Tools</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {caseNav.map((item) => (
@@ -72,11 +76,11 @@ export function AppSidebar() {
                   <SidebarMenuButton asChild>
                     <NavLink
                       to={item.url}
-                      className="hover:bg-sidebar-accent transition-colors"
-                      activeClassName="bg-sidebar-accent text-primary font-medium"
+                      className="transition-colors hover:bg-sidebar-accent"
+                      activeClassName="bg-sidebar-accent font-medium text-primary"
                     >
                       <item.icon className="mr-2 h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
+                      {!collapsed ? <span>{item.title}</span> : null}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -90,13 +94,23 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <NavLink to="/settings" className="hover:bg-sidebar-accent transition-colors" activeClassName="bg-sidebar-accent text-primary">
+              <NavLink to="/settings" className="transition-colors hover:bg-sidebar-accent" activeClassName="bg-sidebar-accent text-primary">
                 <Settings className="mr-2 h-4 w-4" />
-                {!collapsed && <span>Settings</span>}
+                {!collapsed ? <span>Settings</span> : null}
               </NavLink>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
+        <div className="mt-2 border-t border-border/40 pt-2">
+          {!collapsed && user ? <p className="px-2 pb-2 text-xs text-muted-foreground">{user.email}</p> : null}
+          <button
+            onClick={signOut}
+            className="flex items-center gap-2 p-2 text-sm text-gray-500 transition-colors hover:text-gray-800"
+          >
+            <LogOut className="h-4 w-4" />
+            {!collapsed ? <span>Sign Out</span> : null}
+          </button>
+        </div>
       </SidebarFooter>
     </Sidebar>
   );
