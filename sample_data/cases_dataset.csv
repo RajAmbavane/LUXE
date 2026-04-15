@@ -1,0 +1,17 @@
+case_id,brand,item_title,price,dispute_type,buyer_name,seller_name,buyer_account_age_days,buyer_return_rate,weight_consistency_pct,item_identity_pct,expected_decision
+LX-2101,Rolex,Rolex Submariner Date,12500.00,Return Fraud,Marcus Chen,Elena Rodriguez,45,15.2,60,20,DENY_REFUND
+LX-2102,Cartier,Cartier Tank Solo,3200.00,Item Not As Described,Sarah Johnson,Michael Zhang,890,3.1,18,82,APPROVE_REFUND
+LX-2103,Hermès,Hermès Birkin 35,18900.00,Counterfeit,Jennifer Liu,Antoine Dubois,320,8.7,15,80,ESCALATE
+LX-2104,Louis Vuitton,Louis Vuitton Neverfull MM,1850.00,Return Fraud,David Park,Isabella Romano,150,12.4,35,50,ESCALATE
+LX-2105,Patek Philippe,Patek Philippe Calatrava,28500.00,Shipping Damage,Robert Kim,Sophie Martin,1200,2.1,20,75,APPROVE_REFUND
+LX-2106,Chanel,Chanel Classic Flap Bag,7200.00,Return Fraud,Amanda Foster,Lucas Silva,75,18.9,45,55,DENY_REFUND
+LX-2107,Audemars Piguet,AP Royal Oak Offshore,35000.00,Return Fraud,Kevin Wong,Maria Gonzalez,25,25.6,65,15,DENY_REFUND
+LX-2109,Prada,Prada Saffiano Tote,2100.00,Item Not As Described,Lisa Thompson,Jean-Pierre Moreau,450,6.8,12,88,ESCALATE
+LX-2110,Bulgari,Bulgari Serpenti Watch,4800.00,Defective Item,Thomas Anderson,Yuki Tanaka,950,1.8,10,85,APPROVE_REFUND
+LX-2111,Tiffany & Co.,Tiffany Setting Engagement Ring,8900.00,Return Fraud,Rachel Green,Alessandro Rossi,180,11.2,42,52,ESCALATE
+LX-2112,Cartier,Cartier Love Bracelet,7400.00,Return Fraud,Oliver Harrison,Mina Nakamura,1430,2.4,8,90,DENY_REFUND
+LX-2113,Omega,Omega Speedmaster Professional,5200.00,Return Fraud,Daniel Miller,Francesca Bianchi,60,22.1,58,22,DENY_REFUND
+LX-2116,Gucci,Gucci Dionysus Bag,3100.00,Counterfeit,Michelle Davis,Carlos Mendoza,220,14.7,55,25,DENY_REFUND
+LX-2117,Bottega Veneta,Bottega Veneta Intrecciato Bag,4200.00,Return Fraud,Christopher Lee,Valentina Ferrari,95,16.8,40,45,DENY_REFUND
+LX-2118,Omega,Omega Seamaster Aqua Terra,6800.00,Return Fraud,Hana Suzuki,Paul Leclerc,1700,8.1,38,48,DENY_REFUND
+LX-2120,Van Cleef & Arpels,VCA Alhambra Necklace,9500.00,Return Fraud,Stephanie White,Giorgio Armani,35,28.4,70,10,DENY_REFUND

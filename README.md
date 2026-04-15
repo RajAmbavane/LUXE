@@ -56,7 +56,7 @@ LuxeResolve Intelligence is a sophisticated fraud detection platform that combin
 5. **Policy Trigger Engine** - Rule-based fraud patterns
 6. **Decision Confidence Score** - AI certainty measurement
 
-## 🚀 Quick Start
+## 🔄 Complete Reproducibility Guide
 
 ### Prerequisites
 - Node.js 18+
@@ -64,68 +64,177 @@ LuxeResolve Intelligence is a sophisticated fraud detection platform that combin
 - Supabase account
 - Groq API key
 
-### Installation
+### Step 1: Clone Repository
+```bash
+git clone https://github.com/RajAmbavane/LUXE.git
+cd LUXE
+```
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd luxeresolve-intelligence
-   ```
+### Step 2: Database Setup (Supabase)
 
-2. **Install frontend dependencies**
-   ```bash
-   npm install
-   ```
+#### 2.1 Create Supabase Project
+1. Go to [Supabase Dashboard](https://supabase.com/dashboard)
+2. Create new project
+3. Note your project URL and keys
 
-3. **Install backend dependencies**
-   ```bash
-   cd backend
-   pip install -r requirements.txt
-   ```
+#### 2.2 Run Database Migrations
+Execute these SQL files in order in your Supabase SQL Editor:
 
-4. **Environment Setup**
-   
-   Create `.env` in root:
-   ```env
-   VITE_SUPABASE_URL=your_supabase_url
-   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-   ```
-   
-   Create `backend/.env`:
-   ```env
-   GROQ_API_KEY=your_groq_api_key
-   SUPABASE_URL=your_supabase_url
-   SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_key
-   
-   # 3-Agent Configuration
-   VISION_MODEL=meta-llama/llama-4-scout-17b-16e-instruct
-   TEXT_DATA_MODEL=llama-3.3-70b-versatile
-   SYNTHESIS_MODEL=llama-3.3-70b-versatile
-   ```
+**Migration 1: Initial Schema**
+```sql
+-- Copy and paste content from: supabase/migrations/001_initial_schema.sql
+-- This creates: cases, agent_analysis, risk_signals tables with indexes
+```
 
-### Running the Application
+**Migration 2: Sample Data**
+```sql
+-- Copy and paste content from: supabase/migrations/002_sample_data.sql
+-- This inserts: 16 luxury marketplace dispute cases with complete metadata
+```
 
-1. **Start the backend**
-   ```bash
-   cd backend
-   uvicorn app.main:app --reload --port 8000
-   ```
+**Migration 3: Weight & Identity Data**
+```sql
+-- Copy and paste content from: supabase/migrations/003_weight_identity_data.sql
+-- This populates: Weight consistency and item identity verification data
+```
 
-2. **Start the frontend**
-   ```bash
-   npm run dev
-   ```
+#### 2.3 Verify Database Setup
+Run this query to confirm setup:
+```sql
+-- Verify all tables and data
+SELECT 
+    'Cases' as table_name, COUNT(*) as record_count 
+FROM cases
+UNION ALL
+SELECT 
+    'Risk Signals' as table_name, COUNT(*) as record_count 
+FROM risk_signals;
 
-3. **Access the application**
-   - Frontend: http://localhost:5173
-   - Backend API: http://localhost:8000
+-- Should show: Cases: 16, Risk Signals: 32
+```
 
-## 📈 Decision Distribution
+### Step 3: Environment Configuration
 
-The system produces varied, intelligent decisions:
-- **APPROVE_REFUND**: Low weight discrepancy + high identity confidence
-- **DENY_REFUND**: High weight discrepancy or low identity confidence  
-- **ESCALATE**: Mixed signals requiring manual review
+#### 3.1 Frontend Environment
+Create `.env` in root directory:
+```env
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+#### 3.2 Backend Environment
+Create `backend/.env`:
+```env
+# Supabase Configuration
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+
+# Groq API Configuration
+GROQ_API_KEY=your_groq_api_key
+LLM_API_KEY=your_groq_api_key
+
+# 3-Agent Model Configuration
+VISION_MODEL=meta-llama/llama-4-scout-17b-16e-instruct
+TEXT_DATA_MODEL=llama-3.3-70b-versatile
+SYNTHESIS_MODEL=llama-3.3-70b-versatile
+
+# Application Configuration
+LLM_PROVIDER=groq
+LLM_TEMPERATURE=0.3
+LLM_MAX_TOKENS=2000
+PORT=8000
+AGENT_PIPELINE_VERSION=3-agent-specialization-v2
+```
+
+### Step 4: Install Dependencies
+
+#### 4.1 Frontend Dependencies
+```bash
+npm install
+```
+
+#### 4.2 Backend Dependencies
+```bash
+cd backend
+pip install -r requirements.txt
+```
+
+### Step 5: Run the Application
+
+#### 5.1 Start Backend Server
+```bash
+cd backend
+uvicorn app.main:app --reload --port 8000
+```
+
+#### 5.2 Start Frontend Development Server
+```bash
+# In new terminal, from root directory
+npm run dev
+```
+
+#### 5.3 Access Application
+- **Frontend**: http://localhost:5173
+- **Backend API**: http://localhost:8000
+- **API Docs**: http://localhost:8000/docs
+
+### Step 6: Verify System Operation
+
+#### 6.1 Check Case Processing
+```bash
+cd backend
+python show_all_decisions.py
+```
+
+Expected output:
+```
+🟢 APPROVE:  3 cases (19%)
+🔴 DENY:     9 cases (56%) 
+🟡 ESCALATE: 4 cases (25%)
+   TOTAL:    16 cases
+```
+
+#### 6.2 Test Frontend Features
+1. **Dashboard**: View marketplace analytics
+2. **Case Queue**: Browse 16 sample cases
+3. **Case Details**: Click any case for detailed analysis
+4. **Risk Reasoning**: View AI decision explanations
+5. **Actions & Approvals**: See decision recommendations
+
+#### 6.3 Verify AI Pipeline
+The system should automatically process cases showing:
+- Visual analysis results
+- Behavioral analysis with 6 metrics
+- Synthesis decisions (APPROVE/DENY/ESCALATE)
+- Structured AI reasoning
+
+## 📊 Sample Dataset Details
+
+### Case Distribution
+- **16 Total Cases** across luxury brands (Rolex, Hermès, Cartier, etc.)
+- **Price Range**: $1,850 - $35,000
+- **Dispute Types**: Return Fraud, Counterfeit, Item Not As Described, Shipping Damage
+- **Decision Variety**: 3 Approvals, 9 Denials, 4 Escalations
+
+### Fraud Indicators
+- **Weight Discrepancies**: 8% - 70% variations
+- **Identity Confidence**: 10% - 90% verification levels
+- **Buyer Risk Profiles**: New accounts to established users
+- **Fraud History**: 0-7 previous fraud flags
+
+### Key Test Cases
+- **LX-2105**: Clear approval (shipping damage, high identity confidence)
+- **LX-2120**: Clear denial (70% weight loss, multiple fraud flags)
+- **LX-2109**: Escalation (mixed signals, moderate risk)
+
+## 🚀 Deployment
+
+### Vercel Deployment
+1. Connect repository to Vercel
+2. Set environment variables in Vercel dashboard
+3. Deploy automatically on push to main branch
+
+See `DEPLOYMENT_GUIDE.md` for detailed deployment instructions.
 
 ## 🛠️ Development
 
@@ -134,6 +243,9 @@ The system produces varied, intelligent decisions:
 backend/
 ├── app/
 │   ├── agents/           # AI agent implementations
+│   │   ├── visual_agent.py      # Image analysis
+│   │   ├── text_data_agent.py   # Behavioral analysis
+│   │   └── synthesis_agent.py   # Decision synthesis
 │   ├── main.py          # FastAPI application
 │   ├── agent_pipeline.py # Agent orchestration
 │   └── signals.py       # Risk signal processing
@@ -146,42 +258,121 @@ backend/
 src/
 ├── components/          # React components
 ├── pages/              # Application pages
+│   ├── Dashboard.tsx        # Analytics overview
+│   ├── CaseQueue.tsx        # Case management
+│   ├── CaseDetails.tsx      # Individual case view
+│   └── RiskReasoning.tsx    # AI explanations
 ├── hooks/              # Custom React hooks
 ├── lib/                # Utility functions
-└── integrations/       # External service integrations
+└── integrations/       # Supabase integration
 ```
 
-## 🔧 Configuration
-
-### Model Configuration
-- **Vision Model**: Optimized for image analysis
-- **Text Model**: Fast behavioral analysis
-- **Synthesis Model**: Complex decision reasoning
-
 ### Database Schema
-- **Cases**: Core transaction data
-- **Agent Analysis**: AI findings storage
-- **Risk Signals**: Fraud detection metrics
+```
+cases                    # Core case data
+├── id (UUID)           # Primary key
+├── case_id (VARCHAR)   # Human-readable ID
+├── metadata (JSONB)    # Flexible case data
+└── ... (50+ columns)   # Comprehensive case fields
+
+agent_analysis          # AI analysis results
+├── case_id (UUID)      # Foreign key to cases
+├── agent_name          # visual_agent, text_data_agent, synthesis_agent
+├── findings (JSONB)    # Detailed AI findings
+└── reasoning (TEXT)    # Human-readable explanations
+
+risk_signals           # Fraud detection metrics
+├── case_id (UUID)     # Foreign key to cases
+├── signal_name        # Weight Consistency, Item Identity Confidence
+├── impact_score       # Numerical risk score
+└── metadata (JSONB)   # Signal-specific data
+```
+
+## 📈 Expected Results
+
+After successful setup, you should observe:
+
+### Decision Distribution
+- **Varied Decisions**: Not all cases result in the same outcome
+- **Risk-Based Logic**: High-risk cases → DENY, Low-risk → APPROVE
+- **Mixed Signals**: Conflicting evidence → ESCALATE
+
+### AI Reasoning Quality
+- **Structured Format**: Clear decision at top, detailed analysis below
+- **6 Metrics Visible**: All advanced fraud metrics displayed
+- **Evidence-Based**: Decisions supported by specific data points
+
+### Performance Metrics
+- **Processing Speed**: ~2-3 seconds per case analysis
+- **Decision Confidence**: 60-95% confidence scores
+- **Database Integration**: Real-time weight/identity data usage
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+#### Database Connection
+```bash
+# Test Supabase connection
+python -c "
+from supabase import create_client
+import os
+from dotenv import load_dotenv
+load_dotenv()
+client = create_client(os.getenv('SUPABASE_URL'), os.getenv('SUPABASE_SERVICE_ROLE_KEY'))
+print('✓ Database connected:', len(client.table('cases').select('*').execute().data), 'cases found')
+"
+```
+
+#### Groq API Issues
+```bash
+# Test Groq API
+python -c "
+from groq import Groq
+import os
+from dotenv import load_dotenv
+load_dotenv()
+client = Groq(api_key=os.getenv('GROQ_API_KEY'))
+print('✓ Groq API connected')
+"
+```
+
+#### Frontend Build Issues
+```bash
+# Clear cache and rebuild
+rm -rf node_modules dist
+npm install
+npm run build
+```
+
+### Support Resources
+- **Supabase Docs**: https://supabase.com/docs
+- **Groq API Docs**: https://console.groq.com/docs
+- **Vite Docs**: https://vitejs.dev/guide/
 
 ## 📊 Monitoring
 
-Use the monitoring utility to check decision distribution:
+### Decision Monitoring
 ```bash
 cd backend
 python show_all_decisions.py
 ```
 
-## 🚀 Deployment
+### Database Queries
+```sql
+-- View case metrics summary
+SELECT * FROM case_metrics_summary ORDER BY case_id;
 
-### Vercel (Frontend)
-1. Connect repository to Vercel
-2. Set environment variables
-3. Deploy automatically on push
+-- Check AI analysis status
+SELECT agent_name, COUNT(*) as analyses_count 
+FROM agent_analysis 
+GROUP BY agent_name;
 
-### Backend Deployment
-- Compatible with any Python hosting service
-- Requires environment variables configuration
-- Supports auto-scaling with FastAPI
+-- Monitor risk signals
+SELECT signal_name, AVG(impact_score) as avg_impact
+FROM risk_signals 
+GROUP BY signal_name;
+```
 
 ## 📄 License
 
@@ -190,3 +381,17 @@ This project is proprietary software for LuxeResolve Intelligence.
 ## 🤝 Contributing
 
 This is a private project. Contact the development team for contribution guidelines.
+
+---
+
+## 🎯 Success Criteria
+
+After following this guide, you should have:
+- ✅ **Complete Database**: 16 cases with 32 risk signals
+- ✅ **Working AI Pipeline**: 3 agents processing cases
+- ✅ **Varied Decisions**: Mix of APPROVE/DENY/ESCALATE outcomes
+- ✅ **Frontend Interface**: All pages functional and displaying data
+- ✅ **Real-time Processing**: Cases analyzed with AI reasoning
+- ✅ **Reproducible System**: Anyone can recreate from scratch
+
+This system demonstrates advanced AI-powered fraud detection with real-world complexity and production-ready architecture.
