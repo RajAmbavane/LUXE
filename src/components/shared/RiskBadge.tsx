@@ -31,23 +31,23 @@ export function RiskBadge({ score, size = "md", showLabel = true }: RiskBadgePro
 
 export function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
-    open: "bg-info/15 text-info border-info/30",
-    investigating: "bg-warning/15 text-warning border-warning/30",
-    pending_approval: "bg-primary/15 text-primary border-primary/30",
-    resolved: "bg-success/15 text-success border-success/30",
-    escalated: "bg-critical/15 text-critical border-critical/30",
+    pending: "bg-info/15 text-info border-info/30",
+    under_review: "bg-warning/15 text-warning border-warning/30",
+    approved: "bg-success/15 text-success border-success/30",
+    denied: "bg-critical/15 text-critical border-critical/30",
+    escalated: "bg-primary/15 text-primary border-primary/30",
   };
   const labels: Record<string, string> = {
-    open: "Open",
-    investigating: "Investigating",
-    pending_approval: "Pending Approval",
-    resolved: "Resolved",
+    pending: "Pending",
+    under_review: "Under Review",
+    approved: "Approved",
+    denied: "Denied",
     escalated: "Escalated",
   };
 
   return (
-    <span className={cn("inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium", styles[status] || styles.open)}>
-      {labels[status] || status}
+    <span className={cn("inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium", styles[status] ?? "bg-muted text-muted-foreground border-border")}>
+      {labels[status] ?? status}
     </span>
   );
 }

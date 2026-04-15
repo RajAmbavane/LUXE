@@ -1,4 +1,4 @@
-import { Brain, Eye, Gavel, Inbox, LayoutDashboard, LogOut, Settings, Shield } from "lucide-react";
+import { Brain, Eye, Gavel, Inbox, LayoutDashboard, Shield } from "lucide-react";
 import { matchPath, useLocation } from "react-router-dom";
 import { NavLink } from "@/components/NavLink";
 import {
@@ -13,8 +13,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { useAuth } from "@/hooks/useAuth";
-import { heroCaseId } from "@/lib/cases";
+import { useFirstCaseId } from "@/hooks/useFirstCaseId";
 
 const mainNav = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
@@ -24,10 +23,10 @@ const mainNav = [
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
-  const { signOut, user } = useAuth();
+  const firstCaseId = useFirstCaseId();
   const location = useLocation();
   const caseMatch = matchPath("/cases/:caseId/*", location.pathname) ?? matchPath("/cases/:caseId", location.pathname);
-  const activeCaseId = caseMatch?.params.caseId ?? heroCaseId;
+  const activeCaseId = caseMatch?.params.caseId ?? firstCaseId;
   const caseNav = [
     { title: "Visual Analysis", url: `/cases/${activeCaseId}/visual`, icon: Eye },
     { title: "Risk & Reasoning", url: `/cases/${activeCaseId}/risk`, icon: Brain },
@@ -71,7 +70,7 @@ export function AppSidebar() {
           <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-muted-foreground/60">Case Tools</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {caseNav.map((item) => (
+              {activeCaseId ? caseNav.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink
@@ -84,7 +83,7 @@ export function AppSidebar() {
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              ))}
+              )) : null}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -92,25 +91,7 @@ export function AppSidebar() {
 
       <SidebarFooter className="p-3">
         <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <NavLink to="/settings" className="transition-colors hover:bg-sidebar-accent" activeClassName="bg-sidebar-accent text-primary">
-                <Settings className="mr-2 h-4 w-4" />
-                {!collapsed ? <span>Settings</span> : null}
-              </NavLink>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
         </SidebarMenu>
-        <div className="mt-2 border-t border-border/40 pt-2">
-          {!collapsed && user ? <p className="px-2 pb-2 text-xs text-muted-foreground">{user.email}</p> : null}
-          <button
-            onClick={signOut}
-            className="flex items-center gap-2 p-2 text-sm text-gray-500 transition-colors hover:text-gray-800"
-          >
-            <LogOut className="h-4 w-4" />
-            {!collapsed ? <span>Sign Out</span> : null}
-          </button>
-        </div>
       </SidebarFooter>
     </Sidebar>
   );
