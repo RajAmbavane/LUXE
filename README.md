@@ -98,7 +98,32 @@ Execute these SQL files in order in your Supabase SQL Editor:
 -- This populates: Weight consistency and item identity verification data
 ```
 
-#### 2.3 Verify Database Setup
+**Migration 4: Image URLs**
+```sql
+-- Copy and paste content from: supabase/migrations/004_add_image_urls.sql
+-- This adds: Image URL columns and links to case images
+```
+
+#### 2.3 Extract Case Images
+The repository includes a `cases (2).xlsx` file with before/after images for all 16 cases.
+
+**Extract Images from Excel:**
+1. Run the setup script: `python extract_images_from_excel.py`
+2. Open `cases (2).xlsx` in Excel
+3. For each case, right-click on images and select "Save as Picture"
+4. Save images with exact names:
+   - `public/images/cases/LX-2101/original.jpg`
+   - `public/images/cases/LX-2101/returned.jpg`
+   - (Repeat for all 16 cases)
+5. Verify setup: `python verify_images.py`
+
+**Image Requirements:**
+- Format: JPG or PNG
+- Size: Minimum 800x800px recommended
+- Quality: High resolution for AI visual analysis
+- Naming: Exactly `original.jpg` and `returned.jpg`
+
+#### 2.4 Verify Database Setup
 Run this query to confirm setup:
 ```sql
 -- Verify all tables and data
@@ -108,9 +133,14 @@ FROM cases
 UNION ALL
 SELECT 
     'Risk Signals' as table_name, COUNT(*) as record_count 
-FROM risk_signals;
+FROM risk_signals
+UNION ALL
+SELECT 
+    'Cases with Images' as table_name, COUNT(*) as record_count 
+FROM cases 
+WHERE original_image_url IS NOT NULL AND returned_image_url IS NOT NULL;
 
--- Should show: Cases: 16, Risk Signals: 32
+-- Should show: Cases: 16, Risk Signals: 32, Cases with Images: 16
 ```
 
 ### Step 3: Environment Configuration

@@ -1,0 +1,5 @@
+LX-2101 - Rolex Submariner Date ($12,500)
+Dispute: Return Fraud
+Expected Images:
+- original.jpg: Rolex Submariner Date as originally listed
+- returned.jpg: Item returned by buyer (should show weight/authenticity issues)
