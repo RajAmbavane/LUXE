@@ -58,6 +58,29 @@ LuxeResolve Intelligence is a sophisticated fraud detection platform that combin
 
 ## 🔄 Complete Reproducibility Guide
 
+### 📚 Documentation Files
+- **[COMPLETE_SETUP_GUIDE.md](COMPLETE_SETUP_GUIDE.md)** - Detailed step-by-step reproduction guide
+- **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - Essential commands and troubleshooting
+- **[DATA_MANIFEST.md](DATA_MANIFEST.md)** - Complete inventory of all data and assets
+- **[DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)** - Vercel deployment instructions
+
+### 🚀 Quick Start (30 minutes)
+1. **Clone Repository**: `git clone https://github.com/RajAmbavane/LUXE.git`
+2. **Follow Setup Guide**: See [COMPLETE_SETUP_GUIDE.md](COMPLETE_SETUP_GUIDE.md)
+3. **Extract Images**: From `cases (2).xlsx` to `public/images/cases/`
+4. **Run Migrations**: 4 SQL files in Supabase
+5. **Configure Environment**: API keys in `.env` files
+6. **Install & Run**: `npm install` + `pip install -r requirements.txt`
+7. **Verify**: `python verify_setup.py` should show 6/6 checks passed
+
+### ✅ What You Get
+- **16 Luxury Cases** with complete fraud detection data
+- **32 Risk Signals** (weight consistency + item identity)
+- **3-Agent AI Pipeline** with Groq specialization
+- **Before/After Images** for visual fraud analysis
+- **Varied Decisions** (3 APPROVE, 9 DENY, 4 ESCALATE)
+- **Production Deployment** ready for Vercel
+
 ### Prerequisites
 - Node.js 18+
 - Python 3.9+
