@@ -1,7 +1,8 @@
 import { useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-const BACKEND = "http://localhost:8000";
+// Use relative URLs so it works in both development and production
+const BACKEND = "";
 
 /** Poll /processing-status every 5s and auto-refresh case data when processing finishes */
 export function useProcessingStatus() {

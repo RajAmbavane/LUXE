@@ -169,7 +169,8 @@ export function useFinalizeDecision() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (payload: { case_id: string; final_action: string; notes?: string | null }) => {
-      const response = await fetch(`http://localhost:8000/finalize-decision/${payload.case_id}`, {
+      // Use relative URL so it works in both development and production
+      const response = await fetch(`/finalize-decision/${payload.case_id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ final_action: payload.final_action, notes: payload.notes }),

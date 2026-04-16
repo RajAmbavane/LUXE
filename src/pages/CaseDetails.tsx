@@ -27,7 +27,7 @@ export default function CaseDetails() {
     if (caseData?.status === "pending" && id) {
       const processCase = async () => {
         try {
-          const response = await fetch(`http://localhost:8000/process-case/${id}`, {
+          const response = await fetch(`/process-case/${id}`, {
             method: "POST",
           });
           if (response.ok) {
