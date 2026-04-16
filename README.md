@@ -13,11 +13,189 @@ LuxeResolve Intelligence is a sophisticated fraud detection platform that combin
 - **Real-time Visual & Behavioral Analysis**
 - **Intelligent Decision Synthesis**
 
+## ⚠️ **CRITICAL: Security & Compatibility Notice**
+
+### 🔒 **Security Requirements**
+- **NEVER commit `.env` files** - Contains sensitive API keys
+- **Rotate Supabase keys** if accidentally exposed
+- **Use service role key** for backend, anon key for frontend
+
+### 🐍 **Python Compatibility**
+- **Minimum**: Python 3.9+ (tested on 3.9, 3.11, 3.12)
+- **Recommended**: Python 3.11
+- **Note**: Uses `Optional[X]` syntax for Python 3.9 compatibility
+
+### 📦 **Package Manager**
+- **Use npm only** - Remove `bun.lockb` if present
+- **Clean install**: Delete `node_modules` and reinstall if issues
+
+## 🚀 **Quick Start (30 Minutes)**
+
+### Prerequisites
+- **Node.js 18+** ([nodejs.org](https://nodejs.org))
+- **Python 3.9+** ([python.org](https://python.org))
+- **Git** ([git-scm.com](https://git-scm.com))
+- **Groq API Key** ([console.groq.com](https://console.groq.com))
+- **Supabase Account** ([supabase.com](https://supabase.com))
+
+### Step 1: Clone & Setup
+```bash
+git clone https://github.com/RajAmbavane/LUXE.git
+cd LUXE
+
+# Create environment files from templates
+cp .env.example .env
+cp backend/.env.example backend/.env
+
+# Install dependencies
+npm install
+cd backend && pip install -r requirements.txt && cd ..
+```
+
+### Step 2: Database Setup (Supabase)
+
+#### 2.1 Create Project
+1. Go to [supabase.com](https://supabase.com) → "New Project"
+2. Name: "luxeresolve-intelligence"
+3. **Save your credentials**: URL, anon key, service_role key
+
+#### 2.2 Run ALL 5 Migrations (CRITICAL)
+Execute these SQL files **in order** in Supabase SQL Editor:
+
+**Migration 1**: `supabase/migrations/001_initial_schema.sql`
+**Migration 2**: `supabase/migrations/002_sample_cases.sql`  
+**Migration 3**: `supabase/migrations/003_weight_identity_data.sql`
+**Migration 4**: `supabase/migrations/004_add_image_urls.sql`
+**Migration 5**: `supabase/migrations/005_missing_tables.sql` ⚠️ **REQUIRED**
+
+#### 2.3 Verify Database
+```sql
+-- Run this query to verify all tables exist
+SELECT table_name FROM information_schema.tables 
+WHERE table_schema = 'public' 
+ORDER BY table_name;
+
+-- Should show: agent_analysis, audit_logs, behavioral_metrics, 
+-- case_images, cases, decisions, risk_signals
+```
+
+### Step 3: Environment Configuration
+
+#### 3.1 Frontend `.env`
+```env
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your_anon_key_here
+```
+
+#### 3.2 Backend `backend/.env`
+```env
+# Supabase (use SERVICE_ROLE key, not anon)
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
+
+# Groq API
+GROQ_API_KEY=your_groq_api_key_here
+
+# AI Models
+VISION_MODEL=meta-llama/llama-4-scout-17b-16e-instruct
+TEXT_DATA_MODEL=llama-3.3-70b-versatile
+SYNTHESIS_MODEL=llama-3.3-70b-versatile
+LLM_PROVIDER=groq
+LLM_TEMPERATURE=0.3
+LLM_MAX_TOKENS=2000
+AGENT_PIPELINE_VERSION=3-agent-specialization-v2
+```
+
+### Step 4: Extract Images (REQUIRED)
+```bash
+# Use the working image extraction script
+python extract_images_real.py
+
+# Verify extraction worked
+python verify_image_content.py
+# Should show: ✅ All 16 cases have both images
+```
+
+### Step 5: Start Application
+```bash
+# Terminal 1 - Backend
+cd backend
+uvicorn app.main:app --reload --port 8000
+
+# Terminal 2 - Frontend
+npm run dev
+```
+
+### Step 6: Verify Setup
+```bash
+# Run comprehensive verification
+python verify_setup.py
+# Should show: ✅ 6/6 checks passed
+
+# Check decision distribution
+python backend/show_all_decisions.py
+# Should show: 3 APPROVE, 9 DENY, 4 ESCALATE
+```
+
+## 🔧 **Common Issues & Fixes**
+
+### Issue 1: "Failed to fetch" Errors
+**Cause**: Using localhost URLs in production  
+**Fix**: All API calls use relative URLs (already fixed)
+
+### Issue 2: Missing Tables Error
+**Cause**: Migration 5 not run  
+**Fix**: Execute `supabase/migrations/005_missing_tables.sql`
+
+### Issue 3: Python Syntax Error (3.9)
+**Cause**: `X | None` syntax used  
+**Fix**: Code uses `Optional[X]` for compatibility
+
+### Issue 4: Image Loading Failed
+**Cause**: Visual agent can't load local images  
+**Fix**: Updated `_url_to_base64()` to handle filesystem paths
+
+### Issue 5: Service Role Key Exposed
+**Cause**: `.env` committed to git  
+**Fix**: 
+```bash
+# Remove from git history
+git rm --cached .env backend/.env
+git commit -m "Remove exposed environment files"
+git push --force
+
+# Rotate keys in Supabase dashboard
+# Add to .gitignore (already done)
+```
+
+### Issue 6: Rate Limit Errors
+**Cause**: Processing 16 cases too quickly  
+**Fix**: Added 5-second delays between cases
+
+### Issue 7: Wrong Environment Variable Names
+**Cause**: Mismatch between code and docs  
+**Fix**: Use `VITE_SUPABASE_ANON_KEY` (standardized)
+
+## 📁 **Required Files Structure**
+```
+LUXE/
+├── .env                     # Frontend environment (DO NOT COMMIT)
+├── .env.example            # Frontend template
+├── backend/
+│   ├── .env                # Backend environment (DO NOT COMMIT)  
+│   ├── .env.example        # Backend template
+│   └── requirements.txt    # Clean dependencies (no TensorFlow)
+├── supabase/migrations/    # ALL 5 SQL files required
+├── public/images/cases/    # 16 case folders with images
+├── extract_images_real.py  # Working image extraction
+└── verify_setup.py         # Comprehensive verification
+```
+
 ## 🏗️ Architecture
 
 ### Frontend (React + TypeScript)
 - **Dashboard**: Marketplace analytics and case overview
-- **Case Queue**: Pending cases management
+- **Case Queue**: Pending cases management  
 - **Case Details**: Individual case analysis
 - **Risk Reasoning**: AI decision explanations
 - **Actions & Approvals**: Decision management
@@ -26,12 +204,12 @@ LuxeResolve Intelligence is a sophisticated fraud detection platform that combin
 - **3-Agent Pipeline**: Visual, Text/Data, and Synthesis agents
 - **Groq Integration**: Specialized AI models for each task
 - **Supabase Database**: Case data and analysis storage
-- **Real-time Processing**: Automated case analysis
+- **Real-time Processing**: Automated case analysis with rate limiting
 
 ### Database (Supabase)
-- **Cases**: Transaction and dispute data
-- **Agent Analysis**: AI findings and metrics
-- **Risk Signals**: Weight consistency and identity data
+- **7 Tables**: cases, agent_analysis, decisions, behavioral_metrics, case_images, risk_signals, audit_logs
+- **RLS Policies**: Row-level security for data protection
+- **32 Risk Signals**: Weight consistency and identity data for all 16 cases
 
 ## 🤖 AI Agent Specialization
 
@@ -39,6 +217,7 @@ LuxeResolve Intelligence is a sophisticated fraud detection platform that combin
 - **Model**: `llama-4-scout-17b-16e-instruct`
 - **Purpose**: Image analysis and visual verification
 - **Outputs**: Similarity, condition, authenticity assessment
+- **Fixed**: Now handles local filesystem image paths
 
 ### 2. Text/Data Agent  
 - **Model**: `llama-3.3-70b-versatile`
@@ -59,238 +238,36 @@ LuxeResolve Intelligence is a sophisticated fraud detection platform that combin
 5. **Policy Trigger Engine** - Rule-based fraud patterns
 6. **Decision Confidence Score** - AI certainty measurement
 
-## 🔄 Complete Reproducibility Guide
+## 📚 **Complete Documentation**
+- **[LuxeResolve_Team_Reproducibility_Guide.md](LuxeResolve_Team_Reproducibility_Guide.md)** - 5-page comprehensive guide
+- **[COMPLETE_SETUP_GUIDE.md](COMPLETE_SETUP_GUIDE.md)** - Detailed step-by-step instructions
+- **[DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)** - Production deployment on Render
+- **[DATA_MANIFEST.md](DATA_MANIFEST.md)** - Complete data inventory
 
-### 📚 Documentation Files
-- **[COMPLETE_SETUP_GUIDE.md](COMPLETE_SETUP_GUIDE.md)** - Detailed step-by-step reproduction guide
-- **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - Essential commands and troubleshooting
-- **[DATA_MANIFEST.md](DATA_MANIFEST.md)** - Complete inventory of all data and assets
-- **[DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)** - Vercel deployment instructions
+## 🚀 Production Deployment
 
-### 🚀 Quick Start (30 minutes)
-1. **Clone Repository**: `git clone https://github.com/RajAmbavane/LUXE.git`
-2. **Follow Setup Guide**: See [COMPLETE_SETUP_GUIDE.md](COMPLETE_SETUP_GUIDE.md)
-3. **Extract Images**: From `cases (2).xlsx` to `public/images/cases/`
-4. **Run Migrations**: 4 SQL files in Supabase
-5. **Configure Environment**: API keys in `.env` files
-6. **Install & Run**: `npm install` + `pip install -r requirements.txt`
-7. **Verify**: `python verify_setup.py` should show 6/6 checks passed
-
-### ✅ What You Get
-- **16 Luxury Cases** with complete fraud detection data
-- **32 Risk Signals** (weight consistency + item identity)
-- **3-Agent AI Pipeline** with Groq specialization
-- **Before/After Images** for visual fraud analysis
-- **Varied Decisions** (3 APPROVE, 9 DENY, 4 ESCALATE)
-- **Production Deployment** ready for Vercel
-
-### Prerequisites
-- Node.js 18+
-- Python 3.9+
-- Supabase account
-- Groq API key
-
-### Step 1: Clone Repository
-```bash
-git clone https://github.com/RajAmbavane/LUXE.git
-cd LUXE
-```
-
-### Step 2: Database Setup (Supabase)
-
-#### 2.1 Create Supabase Project
-1. Go to [Supabase Dashboard](https://supabase.com/dashboard)
-2. Create new project
-3. Note your project URL and keys
-
-#### 2.2 Run Database Migrations
-Execute these SQL files in order in your Supabase SQL Editor:
-
-**Migration 1: Initial Schema**
-```sql
--- Copy and paste content from: supabase/migrations/001_initial_schema.sql
--- This creates: cases, agent_analysis, risk_signals tables with indexes
-```
-
-**Migration 2: Sample Data**
-```sql
--- Copy and paste content from: supabase/migrations/002_sample_data.sql
--- This inserts: 16 luxury marketplace dispute cases with complete metadata
-```
-
-**Migration 3: Weight & Identity Data**
-```sql
--- Copy and paste content from: supabase/migrations/003_weight_identity_data.sql
--- This populates: Weight consistency and item identity verification data
-```
-
-**Migration 4: Image URLs**
-```sql
--- Copy and paste content from: supabase/migrations/004_add_image_urls.sql
--- This adds: Image URL columns and links to case images
-```
-
-#### 2.3 Extract Case Images
-The repository includes a `cases (2).xlsx` file with before/after images for all 16 cases.
-
-**Extract Images from Excel:**
-1. Run the setup script: `python extract_images_from_excel.py`
-2. Open `cases (2).xlsx` in Excel
-3. For each case, right-click on images and select "Save as Picture"
-4. Save images with exact names:
-   - `public/images/cases/LX-2101/original.jpg`
-   - `public/images/cases/LX-2101/returned.jpg`
-   - (Repeat for all 16 cases)
-5. Verify setup: `python verify_images.py`
-
-**Image Requirements:**
-- Format: JPG or PNG
-- Size: Minimum 800x800px recommended
-- Quality: High resolution for AI visual analysis
-- Naming: Exactly `original.jpg` and `returned.jpg`
-
-#### 2.4 Verify Database Setup
-Run this query to confirm setup:
-```sql
--- Verify all tables and data
-SELECT 
-    'Cases' as table_name, COUNT(*) as record_count 
-FROM cases
-UNION ALL
-SELECT 
-    'Risk Signals' as table_name, COUNT(*) as record_count 
-FROM risk_signals
-UNION ALL
-SELECT 
-    'Cases with Images' as table_name, COUNT(*) as record_count 
-FROM cases 
-WHERE original_image_url IS NOT NULL AND returned_image_url IS NOT NULL;
-
--- Should show: Cases: 16, Risk Signals: 32, Cases with Images: 16
-```
-
-### Step 3: Environment Configuration
-
-#### 3.1 Frontend Environment
-Create `.env` in root directory:
-```env
-VITE_SUPABASE_URL=your_supabase_project_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-```
-
-#### 3.2 Backend Environment
-Create `backend/.env`:
-```env
-# Supabase Configuration
-SUPABASE_URL=your_supabase_project_url
-SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
-
-# Groq API Configuration
-GROQ_API_KEY=your_groq_api_key
-LLM_API_KEY=your_groq_api_key
-
-# 3-Agent Model Configuration
-VISION_MODEL=meta-llama/llama-4-scout-17b-16e-instruct
-TEXT_DATA_MODEL=llama-3.3-70b-versatile
-SYNTHESIS_MODEL=llama-3.3-70b-versatile
-
-# Application Configuration
-LLM_PROVIDER=groq
-LLM_TEMPERATURE=0.3
-LLM_MAX_TOKENS=2000
-PORT=8000
-AGENT_PIPELINE_VERSION=3-agent-specialization-v2
-```
-
-### Step 4: Install Dependencies
-
-#### 4.1 Frontend Dependencies
-```bash
-npm install
-```
-
-#### 4.2 Backend Dependencies
-```bash
-cd backend
-pip install -r requirements.txt
-```
-
-### Step 5: Run the Application
-
-#### 5.1 Start Backend Server
-```bash
-cd backend
-uvicorn app.main:app --reload --port 8000
-```
-
-#### 5.2 Start Frontend Development Server
-```bash
-# In new terminal, from root directory
-npm run dev
-```
-
-#### 5.3 Access Application
-- **Frontend**: http://localhost:5173
-- **Backend API**: http://localhost:8000
-- **API Docs**: http://localhost:8000/docs
-
-### Step 6: Verify System Operation
-
-#### 6.1 Check Case Processing
-```bash
-cd backend
-python show_all_decisions.py
-```
-
-Expected output:
-```
-🟢 APPROVE:  3 cases (19%)
-🔴 DENY:     9 cases (56%) 
-🟡 ESCALATE: 4 cases (25%)
-   TOTAL:    16 cases
-```
-
-#### 6.2 Test Frontend Features
-1. **Dashboard**: View marketplace analytics
-2. **Case Queue**: Browse 16 sample cases
-3. **Case Details**: Click any case for detailed analysis
-4. **Risk Reasoning**: View AI decision explanations
-5. **Actions & Approvals**: See decision recommendations
-
-#### 6.3 Verify AI Pipeline
-The system should automatically process cases showing:
-- Visual analysis results
-- Behavioral analysis with 6 metrics
-- Synthesis decisions (APPROVE/DENY/ESCALATE)
-- Structured AI reasoning
+### Render.com (Recommended)
+1. **Fork repository** to your GitHub
+2. **Create Render account** and connect GitHub
+3. **New Web Service** from your fork
+4. **Configuration**:
+   - Runtime: Python 3
+   - Build: `pip install -r backend/requirements.txt && npm install && npm run build && mkdir -p backend/app/static && cp -r dist/* backend/app/static/`
+   - Start: `cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+5. **Environment Variables**: Add all backend/.env variables
+6. **Deploy**: Automatic build and deployment
 
 ## 📊 Sample Dataset Details
 
 ### Case Distribution
 - **16 Total Cases** across luxury brands (Rolex, Hermès, Cartier, etc.)
-- **Price Range**: $1,850 - $35,000
-- **Dispute Types**: Return Fraud, Counterfeit, Item Not As Described, Shipping Damage
-- **Decision Variety**: 3 Approvals, 9 Denials, 4 Escalations
+- **Price Range**: $1,450 - $32,000
+- **Decision Variety**: 3 Approvals (19%), 9 Denials (56%), 4 Escalations (25%)
 
 ### Fraud Indicators
-- **Weight Discrepancies**: 8% - 70% variations
-- **Identity Confidence**: 10% - 90% verification levels
-- **Buyer Risk Profiles**: New accounts to established users
-- **Fraud History**: 0-7 previous fraud flags
-
-### Key Test Cases
-- **LX-2105**: Clear approval (shipping damage, high identity confidence)
-- **LX-2120**: Clear denial (70% weight loss, multiple fraud flags)
-- **LX-2109**: Escalation (mixed signals, moderate risk)
-
-## 🚀 Deployment
-
-### Vercel Deployment
-1. Connect repository to Vercel
-2. Set environment variables in Vercel dashboard
-3. Deploy automatically on push to main branch
-
-See `DEPLOYMENT_GUIDE.md` for detailed deployment instructions.
+- **Weight Discrepancies**: 5% - 70% variations between shipped and returned items
+- **Identity Confidence**: 18% - 97% verification levels
+- **Risk Profiles**: Mix of low, medium, and high-risk cases
 
 ## 🛠️ Development
 
@@ -298,156 +275,79 @@ See `DEPLOYMENT_GUIDE.md` for detailed deployment instructions.
 ```
 backend/
 ├── app/
-│   ├── agents/           # AI agent implementations
-│   │   ├── visual_agent.py      # Image analysis
-│   │   ├── text_data_agent.py   # Behavioral analysis
+│   ├── agents/              # AI agent implementations
+│   │   ├── visual_agent.py      # Image analysis (fixed local paths)
+│   │   ├── text_data_agent.py   # Behavioral analysis  
 │   │   └── synthesis_agent.py   # Decision synthesis
-│   ├── main.py          # FastAPI application
-│   ├── agent_pipeline.py # Agent orchestration
-│   └── signals.py       # Risk signal processing
-├── requirements.txt     # Python dependencies
-└── show_all_decisions.py # Decision monitoring utility
+│   ├── main.py             # FastAPI application
+│   ├── agent_pipeline.py   # Agent orchestration with rate limiting
+│   └── signals.py          # Risk signal processing
+├── requirements.txt        # Clean dependencies (no TensorFlow/Keras)
+└── show_all_decisions.py   # Decision monitoring utility
 ```
 
-### Frontend Structure
+### Frontend Structure  
 ```
 src/
-├── components/          # React components
-├── pages/              # Application pages
-│   ├── Dashboard.tsx        # Analytics overview
-│   ├── CaseQueue.tsx        # Case management
-│   ├── CaseDetails.tsx      # Individual case view
-│   └── RiskReasoning.tsx    # AI explanations
-├── hooks/              # Custom React hooks
-├── lib/                # Utility functions
-└── integrations/       # Supabase integration
+├── components/             # React components
+├── pages/                 # Application pages
+│   ├── Dashboard.tsx          # Analytics overview
+│   ├── CaseQueue.tsx          # Case management
+│   ├── CaseDetails.tsx        # Individual case view
+│   └── RiskReasoning.tsx      # AI explanations
+├── hooks/                 # Custom React hooks (fixed API URLs)
+├── lib/                   # Utility functions
+└── integrations/          # Supabase integration
 ```
 
-### Database Schema
-```
-cases                    # Core case data
-├── id (UUID)           # Primary key
-├── case_id (VARCHAR)   # Human-readable ID
-├── metadata (JSONB)    # Flexible case data
-└── ... (50+ columns)   # Comprehensive case fields
+## ✅ **Success Criteria**
 
-agent_analysis          # AI analysis results
-├── case_id (UUID)      # Foreign key to cases
-├── agent_name          # visual_agent, text_data_agent, synthesis_agent
-├── findings (JSONB)    # Detailed AI findings
-└── reasoning (TEXT)    # Human-readable explanations
+After following this guide, you should have:
+- ✅ **All 7 Database Tables** created and populated
+- ✅ **16 Cases with Images** extracted and verified
+- ✅ **3-Agent AI Pipeline** processing cases with rate limiting
+- ✅ **Varied Decisions** (3 approve, 9 deny, 4 escalate)
+- ✅ **Working Frontend** with all pages functional
+- ✅ **No Security Issues** (no exposed keys)
+- ✅ **Python 3.9+ Compatible** code
 
-risk_signals           # Fraud detection metrics
-├── case_id (UUID)     # Foreign key to cases
-├── signal_name        # Weight Consistency, Item Identity Confidence
-├── impact_score       # Numerical risk score
-└── metadata (JSONB)   # Signal-specific data
-```
+## 🆘 **Troubleshooting**
 
-## 📈 Expected Results
-
-After successful setup, you should observe:
-
-### Decision Distribution
-- **Varied Decisions**: Not all cases result in the same outcome
-- **Risk-Based Logic**: High-risk cases → DENY, Low-risk → APPROVE
-- **Mixed Signals**: Conflicting evidence → ESCALATE
-
-### AI Reasoning Quality
-- **Structured Format**: Clear decision at top, detailed analysis below
-- **6 Metrics Visible**: All advanced fraud metrics displayed
-- **Evidence-Based**: Decisions supported by specific data points
-
-### Performance Metrics
-- **Processing Speed**: ~2-3 seconds per case analysis
-- **Decision Confidence**: 60-95% confidence scores
-- **Database Integration**: Real-time weight/identity data usage
-
-## 🔧 Troubleshooting
-
-### Common Issues
-
-#### Database Connection
+### Verification Commands
 ```bash
-# Test Supabase connection
+# Check Python version
+python --version  # Should be 3.9+
+
+# Verify database tables
 python -c "
 from supabase import create_client
 import os
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv('backend/.env')
 client = create_client(os.getenv('SUPABASE_URL'), os.getenv('SUPABASE_SERVICE_ROLE_KEY'))
-print('✓ Database connected:', len(client.table('cases').select('*').execute().data), 'cases found')
+tables = client.table('information_schema.tables').select('table_name').eq('table_schema', 'public').execute()
+print('Tables:', [t['table_name'] for t in tables.data])
 "
-```
 
-#### Groq API Issues
-```bash
 # Test Groq API
 python -c "
 from groq import Groq
 import os
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv('backend/.env')
 client = Groq(api_key=os.getenv('GROQ_API_KEY'))
 print('✓ Groq API connected')
 "
+
+# Verify images
+ls public/images/cases/*/  # Should show original.jpg and returned.jpg for each case
 ```
 
-#### Frontend Build Issues
-```bash
-# Clear cache and rebuild
-rm -rf node_modules dist
-npm install
-npm run build
-```
-
-### Support Resources
-- **Supabase Docs**: https://supabase.com/docs
-- **Groq API Docs**: https://console.groq.com/docs
-- **Vite Docs**: https://vitejs.dev/guide/
-
-## 📊 Monitoring
-
-### Decision Monitoring
-```bash
-cd backend
-python show_all_decisions.py
-```
-
-### Database Queries
-```sql
--- View case metrics summary
-SELECT * FROM case_metrics_summary ORDER BY case_id;
-
--- Check AI analysis status
-SELECT agent_name, COUNT(*) as analyses_count 
-FROM agent_analysis 
-GROUP BY agent_name;
-
--- Monitor risk signals
-SELECT signal_name, AVG(impact_score) as avg_impact
-FROM risk_signals 
-GROUP BY signal_name;
-```
-
-## 📄 License
-
-This project is proprietary software for LuxeResolve Intelligence.
-
-## 🤝 Contributing
-
-This is a private project. Contact the development team for contribution guidelines.
+### Get Help
+- **GitHub Issues**: [Report problems](https://github.com/RajAmbavane/LUXE/issues)
+- **Live Demo**: [Test expected behavior](https://luxeresolve.onrender.com)
+- **Documentation**: Check all .md files in repository
 
 ---
 
-## 🎯 Success Criteria
-
-After following this guide, you should have:
-- ✅ **Complete Database**: 16 cases with 32 risk signals
-- ✅ **Working AI Pipeline**: 3 agents processing cases
-- ✅ **Varied Decisions**: Mix of APPROVE/DENY/ESCALATE outcomes
-- ✅ **Frontend Interface**: All pages functional and displaying data
-- ✅ **Real-time Processing**: Cases analyzed with AI reasoning
-- ✅ **Reproducible System**: Anyone can recreate from scratch
-
-This system demonstrates advanced AI-powered fraud detection with real-world complexity and production-ready architecture.
+**This system demonstrates production-ready AI fraud detection with complete reproducibility and security best practices.**

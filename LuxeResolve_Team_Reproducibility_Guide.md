@@ -53,6 +53,10 @@ LuxeResolve Intelligence is an AI-powered fraud detection system for luxury mark
 git clone https://github.com/RajAmbavane/LUXE.git
 cd LUXE
 
+# Create environment files from templates (CRITICAL)
+cp .env.example .env
+cp backend/.env.example backend/.env
+
 # Install backend dependencies
 cd backend
 pip install -r requirements.txt
@@ -64,8 +68,14 @@ npm install
 
 ### 2.3 Step 2: Database Setup (Supabase)
 1. **Create Project**: Go to supabase.com → "New Project" → Name: "luxeresolve-intelligence"
-2. **Get Credentials**: Settings → API → Copy URL and service_role key
-3. **Run Migrations**: SQL Editor → Execute these 4 files in order:
+2. **Get Credentials**: Settings → API → Copy URL, anon key, and **service_role key**
+3. **Run ALL 5 Migrations**: SQL Editor → Execute these files **in order**:
+
+**Migration 1** - Core Schema (`supabase/migrations/001_initial_schema.sql`)
+**Migration 2** - Sample Cases (`supabase/migrations/002_sample_cases.sql`)  
+**Migration 3** - Weight/Identity Data (`supabase/migrations/003_weight_identity_data.sql`)
+**Migration 4** - Image URLs (`supabase/migrations/004_add_image_urls.sql`)
+**Migration 5** - Missing Tables (`supabase/migrations/005_missing_tables.sql`) ⚠️ **CRITICAL**
 
 **Migration 1** - Core Schema (`supabase/migrations/001_initial_schema.sql`):
 ```sql
@@ -440,3 +450,124 @@ Based on weight/identity data in migration 3:
 
 **Document Version**: 1.0 | **Team**: LuxeResolve Intelligence | **Date**: April 15, 2026  
 **Support**: GitHub Issues at https://github.com/RajAmbavane/LUXE/issues
+
+---
+
+## 6. CRITICAL FIXES FOR COMMON ISSUES
+
+### 🔒 **Security Issue: Exposed Service Role Key**
+**Problem**: `.env` files committed to git with sensitive keys  
+**Fix**:
+```bash
+# Remove from git history
+git rm --cached .env backend/.env
+git commit -m "Remove exposed environment files"
+git push --force
+
+# Rotate keys in Supabase dashboard → Settings → API
+# Use templates: cp .env.example .env && cp backend/.env.example backend/.env
+```
+
+### 📋 **Missing Tables Error**
+**Problem**: Code references tables not created by migrations 1-4  
+**Fix**: Execute Migration 5 (`supabase/migrations/005_missing_tables.sql`)
+```sql
+-- Creates: behavioral_metrics, decisions, audit_logs, case_images tables
+-- Adds: RLS policies to prevent 406 errors
+-- Inserts: Sample behavioral data for all cases
+```
+
+### 🐍 **Python 3.9 Compatibility**
+**Problem**: `X | None` syntax breaks on Python 3.9  
+**Status**: ✅ **FIXED** - Code uses `Optional[X]` for compatibility  
+**Minimum**: Python 3.9+ (tested on 3.9, 3.11, 3.12)
+
+### 🖼️ **Image Loading Failed**
+**Problem**: Visual agent can't load local filesystem images  
+**Status**: ✅ **FIXED** - Updated `_url_to_base64()` to handle local paths  
+**Verification**: Run `python extract_images_real.py` then `python verify_setup.py`
+
+### ⚡ **Rate Limit Errors**
+**Problem**: Processing 16 cases hits Groq 100k TPD limit  
+**Status**: ✅ **FIXED** - Added 5-second delays between cases  
+**Result**: Prevents rate limiting during batch processing
+
+### 🔗 **"Failed to Fetch" Errors**
+**Problem**: Frontend uses hardcoded localhost URLs in production  
+**Status**: ✅ **FIXED** - All API calls use relative URLs  
+**Files**: `useSupabaseData.ts`, `CaseDetails.tsx`, `useProcessCase.ts`
+
+### 📦 **Package Manager Conflicts**
+**Problem**: Both `package-lock.json` and `bun.lockb` present  
+**Fix**: Use npm only - delete `bun.lockb` if present
+```bash
+rm bun.lockb  # Remove bun lockfile
+rm -rf node_modules
+npm install   # Clean npm install
+```
+
+### 🔑 **Environment Variable Mismatch**
+**Problem**: Code expects `VITE_SUPABASE_ANON_KEY` but docs say different names  
+**Status**: ✅ **STANDARDIZED** - Use `VITE_SUPABASE_ANON_KEY` everywhere
+
+### 🗃️ **Database Schema Mismatch**
+**Problem**: `case_images` view returns wrong columns  
+**Status**: ✅ **FIXED** - View recreated with correct schema in Migration 5
+
+---
+
+## 7. VERIFICATION COMMANDS
+
+### Complete System Check
+```bash
+# Run comprehensive verification (recommended)
+python verify_setup.py
+# Expected: ✅ 7/7 checks passed
+
+# Individual checks
+python -c "import sys; print(f'Python {sys.version_info.major}.{sys.version_info.minor}')"  # 3.9+
+python extract_images_real.py  # Extract images from Excel
+ls public/images/cases/*/      # Verify image files exist
+```
+
+### Database Verification
+```sql
+-- Check all required tables exist
+SELECT table_name FROM information_schema.tables 
+WHERE table_schema = 'public' 
+ORDER BY table_name;
+-- Expected: agent_analysis, audit_logs, behavioral_metrics, case_images, cases, decisions, risk_signals
+
+-- Verify data counts
+SELECT 'cases' as table_name, COUNT(*) as count FROM cases
+UNION ALL SELECT 'risk_signals', COUNT(*) FROM risk_signals
+UNION ALL SELECT 'behavioral_metrics', COUNT(*) FROM behavioral_metrics;
+-- Expected: cases: 16, risk_signals: 32, behavioral_metrics: 16
+```
+
+### API Testing
+```bash
+# Test Supabase connection
+python -c "
+from supabase import create_client
+import os
+from dotenv import load_dotenv
+load_dotenv('backend/.env')
+client = create_client(os.getenv('SUPABASE_URL'), os.getenv('SUPABASE_SERVICE_ROLE_KEY'))
+print('Cases:', len(client.table('cases').select('*').execute().data))
+"
+
+# Test Groq API
+python -c "
+from groq import Groq
+import os
+from dotenv import load_dotenv
+load_dotenv('backend/.env')
+client = Groq(api_key=os.getenv('GROQ_API_KEY'))
+print('✅ Groq API connected')
+"
+```
+
+---
+
+**Document Updated**: April 15, 2026 | **All Critical Issues Addressed** | **Production Ready**
