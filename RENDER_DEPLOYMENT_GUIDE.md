@@ -273,6 +273,8 @@ Your LuxeResolve Intelligence system is now live on the internet with:
 - **Scalable**: Can handle real-world traffic
 - **Maintainable**: Easy updates via GitHub
 
+**🌐 Live Demo**: [https://luxeresolve.onrender.com](https://luxeresolve.onrender.com)
+
 **Share your live URL**: `https://your-app.onrender.com`
 
 ---
