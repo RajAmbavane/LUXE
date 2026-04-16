@@ -4,8 +4,11 @@ import base64
 import asyncio
 import threading
 import time as _time
+from pathlib import Path
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from supabase import create_client, Client
@@ -14,7 +17,7 @@ import numpy as np
 
 load_dotenv()
 
-app = FastAPI(title="LuxeResolve AI Pipeline")
+app = FastAPI(title="LuxeResolve Intelligence", description="AI-powered fraud detection for luxury marketplace disputes")
 
 app.add_middleware(
     CORSMiddleware,
@@ -23,6 +26,16 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Mount static files (frontend) if they exist
+static_dir = Path(__file__).parent / "static"
+if static_dir.exists():
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
+    
+    # Serve frontend at root
+    @app.get("/")
+    async def serve_frontend():
+        return FileResponse(static_dir / "index.html")
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
@@ -326,3 +339,40 @@ def finalize_decision(case_id: str, request: DecisionRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# ── SPA Routing for Frontend ──────────────────────────────────────────────
+
+@app.get("/{path:path}")
+async def catch_all(path: str):
+    """Catch-all route for SPA routing - serves frontend for non-API routes"""
+    static_dir = Path(__file__).parent / "static"
+    
+    # If static directory doesn't exist, return API info
+    if not static_dir.exists():
+        if path == "":
+            return {
+                "message": "LuxeResolve Intelligence API",
+                "version": "1.0.0",
+                "status": "running",
+                "frontend": "not_deployed",
+                "endpoints": ["/health", "/process-case/{case_id}", "/trigger-processing"]
+            }
+        else:
+            raise HTTPException(status_code=404, detail="Frontend not deployed")
+    
+    # If it's an API route, let it pass through to 404
+    if path.startswith("api/"):
+        raise HTTPException(status_code=404, detail="API endpoint not found")
+    
+    # For all other routes, try to serve the file or return index.html for SPA routing
+    file_path = static_dir / path
+    if file_path.exists() and file_path.is_file():
+        return FileResponse(file_path)
+    else:
+        # Return index.html for SPA routing
+        return FileResponse(static_dir / "index.html")
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 8000)))

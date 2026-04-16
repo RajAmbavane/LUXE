@@ -1,0 +1,37 @@
+services:
+  - type: web
+    name: luxeresolve-intelligence
+    env: python
+    buildCommand: |
+      # Install Python dependencies
+      pip install -r backend/requirements.txt
+      # Install Node.js dependencies and build frontend
+      npm install
+      npm run build
+      # Copy built frontend to backend static directory
+      mkdir -p backend/static
+      cp -r dist/* backend/static/
+    startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: VISION_MODEL
+        value: meta-llama/llama-4-scout-17b-16e-instruct
+      - key: TEXT_DATA_MODEL
+        value: llama-3.3-70b-versatile
+      - key: SYNTHESIS_MODEL
+        value: llama-3.3-70b-versatile
+      - key: LLM_PROVIDER
+        value: groq
+      - key: LLM_TEMPERATURE
+        value: "0.3"
+      - key: LLM_MAX_TOKENS
+        value: "2000"
+      - key: PORT
+        value: "8000"
+      - key: AGENT_PIPELINE_VERSION
+        value: 3-agent-specialization-v2
