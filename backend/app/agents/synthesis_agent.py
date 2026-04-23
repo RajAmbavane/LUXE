@@ -157,6 +157,7 @@ Decision rules:
 5. Weight consistency is critical: >50% discrepancy is strong fraud signal
 6. Item identity >70% is strong legitimacy signal
 7. Confidence = (agent_agreement_score * 0.35 + signal_strength * 0.40 + policy_alignment * 0.25)
+8. Use professional language without emojis or symbols in all responses
 """
         return prompt
 
@@ -179,7 +180,7 @@ Decision rules:
         return fallback_data
 
     def _generate_structured_reasoning(self, decision_data: Dict, visual: Dict, text_data: Dict) -> str:
-        """Generate improved, scannable reasoning format."""
+        """Generate improved, scannable reasoning format without emojis."""
         
         # Extract case info from visual or text_data
         v_findings = visual.get("findings", {})
@@ -189,13 +190,7 @@ Decision rules:
         decision = decision_data.get('final_decision', 'ESCALATE')
         confidence = decision_data.get('decision_confidence', 0.75)
         
-        # Decision emoji and formatting
-        decision_emoji = {
-            'DENY_REFUND': '🔴',
-            'APPROVE_REFUND': '🟢', 
-            'ESCALATE': '🟡'
-        }.get(decision, '🟡')
-        
+        # Decision formatting without emojis
         decision_display = decision.replace('_', ' ')
         
         # Risk assessment
@@ -217,15 +212,15 @@ Decision rules:
         policy_triggers = decision_data.get('key_decision_factors', [])
         manual_review = decision_data.get('manual_review_recommended', False)
         
-        # Build structured reasoning with better logic
-        reasoning = f"""{decision_emoji} {decision_display}
+        # Build structured reasoning with professional formatting
+        reasoning = f"""DECISION: {decision_display}
 
-📊 Quick Assessment
-• Decision Confidence: {confidence:.0%}
-• Agent Agreement: {agreement.title()}
-• Overall Risk: {overall_risk.title()}
+ASSESSMENT SUMMARY
+- Decision Confidence: {confidence:.0%}
+- Agent Agreement: {agreement.title()}
+- Overall Risk: {overall_risk.title()}
 
-🔍 What Our AI Found
+ANALYSIS RESULTS
 
 Visual Analysis ({v_conf:.0%} confidence)
 {self._format_visual_findings(v_findings, v_rec)}
@@ -233,16 +228,16 @@ Visual Analysis ({v_conf:.0%} confidence)
 Behavioral Analysis ({t_conf:.0%} confidence)  
 {self._format_behavioral_findings(t_findings, t_rec)}
 
-⚖️ Decision Logic
+DECISION LOGIC
 {self._format_decision_logic(decision, agreement, policy_triggers, manual_review, v_rec, t_rec)}
 
-🎯 Final Reasoning
+FINAL REASONING
 {self._generate_enhanced_rationale(decision_data, decision, agreement, policy_triggers)}"""
 
         return reasoning
 
     def _format_visual_findings(self, v_findings: Dict, v_rec: str) -> str:
-        """Format visual findings in a clear way."""
+        """Format visual findings in a clear way without emojis."""
         similarity = v_findings.get('similarity', {})
         condition = v_findings.get('condition', {})
         authenticity = v_findings.get('authenticity', {})
@@ -256,32 +251,32 @@ Behavioral Analysis ({t_conf:.0%} confidence)
         
         # Similarity
         if sim_score >= 0.8:
-            findings.append(f"✅ High similarity to original ({sim_score:.0%})")
+            findings.append(f"- High similarity to original ({sim_score:.0%})")
         elif sim_score >= 0.6:
-            findings.append(f"⚠️ Moderate similarity to original ({sim_score:.0%})")
+            findings.append(f"- Moderate similarity to original ({sim_score:.0%})")
         else:
-            findings.append(f"🚨 Low similarity to original ({sim_score:.0%})")
+            findings.append(f"- Low similarity to original ({sim_score:.0%})")
         
         # Condition
         if damage:
-            findings.append(f"⚠️ Damage detected (condition: {cond_score:.0%})")
+            findings.append(f"- Damage detected (condition: {cond_score:.0%})")
         elif cond_score >= 0.7:
-            findings.append(f"✅ Good condition ({cond_score:.0%})")
+            findings.append(f"- Good condition ({cond_score:.0%})")
         else:
-            findings.append(f"⚠️ Poor condition ({cond_score:.0%})")
+            findings.append(f"- Poor condition ({cond_score:.0%})")
         
         # Authenticity
         if auth_concerns:
-            findings.append("🚨 Authenticity concerns detected")
+            findings.append("- Authenticity concerns detected")
         else:
-            findings.append("✅ No major authenticity red flags")
+            findings.append("- No major authenticity red flags")
         
-        findings.append(f"→ Visual Recommendation: {v_rec.replace('_', ' ')}")
+        findings.append(f"- Visual Recommendation: {v_rec.replace('_', ' ')}")
         
         return '\n'.join(findings)
 
     def _format_behavioral_findings(self, t_findings: Dict, t_rec: str) -> str:
-        """Format behavioral findings in a clear way with all 6 advanced metrics."""
+        """Format behavioral findings in a clear way with all 6 advanced metrics without emojis."""
         buyer_assessment = t_findings.get('buyer_assessment', {})
         fraud_propensity = t_findings.get('buyer_fraud_propensity', {})
         weight_consistency = t_findings.get('weight_consistency', {})
@@ -300,78 +295,78 @@ Behavioral Analysis ({t_conf:.0%} confidence)
         
         # Metric 1: Buyer risk
         if buyer_risk >= 0.6:
-            findings.append(f"🚨 High buyer risk profile ({buyer_risk:.0%})")
+            findings.append(f"- High buyer risk profile ({buyer_risk:.0%})")
         elif buyer_risk >= 0.3:
-            findings.append(f"⚠️ Moderate buyer risk ({buyer_risk:.0%})")
+            findings.append(f"- Moderate buyer risk ({buyer_risk:.0%})")
         else:
-            findings.append(f"✅ Low buyer risk profile ({buyer_risk:.0%})")
+            findings.append(f"- Low buyer risk profile ({buyer_risk:.0%})")
         
         # Metric 2: Fraud propensity
         if fraud_score >= 0.6:
-            findings.append(f"🚨 High fraud propensity ({fraud_score:.0%})")
+            findings.append(f"- High fraud propensity ({fraud_score:.0%})")
         elif fraud_score >= 0.3:
-            findings.append(f"⚠️ Moderate fraud indicators ({fraud_score:.0%})")
+            findings.append(f"- Moderate fraud indicators ({fraud_score:.0%})")
         else:
-            findings.append(f"✅ Low fraud risk ({fraud_score:.0%})")
+            findings.append(f"- Low fraud risk ({fraud_score:.0%})")
         
         # Metric 3: Weight consistency
         if weight_score >= 0.4:
-            findings.append(f"🚨 Significant weight discrepancy ({weight_score:.0%})")
+            findings.append(f"- Significant weight discrepancy ({weight_score:.0%})")
         elif weight_score >= 0.2:
-            findings.append(f"⚠️ Minor weight inconsistency ({weight_score:.0%})")
+            findings.append(f"- Minor weight inconsistency ({weight_score:.0%})")
         else:
-            findings.append("✅ Weight consistent with original")
+            findings.append("- Weight consistent with original")
         
         # Metric 4: Item identity confidence
         if identity_score >= 0.7:
-            findings.append(f"✅ High item identity confidence ({identity_score:.0%})")
+            findings.append(f"- High item identity confidence ({identity_score:.0%})")
         elif identity_score >= 0.4:
-            findings.append(f"⚠️ Medium item identity confidence ({identity_score:.0%})")
+            findings.append(f"- Medium item identity confidence ({identity_score:.0%})")
         else:
-            findings.append(f"🚨 Low item identity confidence ({identity_score:.0%})")
+            findings.append(f"- Low item identity confidence ({identity_score:.0%})")
         
         # Metric 5: Custody anomaly
         if custody_score >= 0.6:
-            findings.append(f"🚨 High custody anomaly ({custody_score:.0%})")
+            findings.append(f"- High custody anomaly ({custody_score:.0%})")
         elif custody_score >= 0.3:
-            findings.append(f"⚠️ Moderate custody concerns ({custody_score:.0%})")
+            findings.append(f"- Moderate custody concerns ({custody_score:.0%})")
         else:
-            findings.append(f"✅ Normal custody chain")
+            findings.append(f"- Normal custody chain")
         
         # Metric 6: Policy triggers
         if trigger_count >= 2:
-            findings.append(f"🚨 {trigger_count} policy triggers fired")
+            findings.append(f"- {trigger_count} policy triggers fired")
         elif trigger_count == 1:
-            findings.append("⚠️ 1 policy trigger detected")
+            findings.append("- 1 policy trigger detected")
         else:
-            findings.append("✅ No policy violations")
+            findings.append("- No policy violations")
         
-        findings.append(f"→ Behavioral Recommendation: {t_rec.replace('_', ' ')}")
+        findings.append(f"- Behavioral Recommendation: {t_rec.replace('_', ' ')}")
         
         return '\n'.join(findings)
 
     def _format_decision_logic(self, decision: str, agreement: str, policy_triggers: list, manual_review: bool, v_rec: str, t_rec: str) -> str:
-        """Explain the decision logic clearly."""
+        """Explain the decision logic clearly without emojis."""
         logic = []
         
         if agreement == 'high':
-            logic.append(f"✅ Both agents agree: {decision.replace('_', ' ')}")
+            logic.append(f"- Both agents agree: {decision.replace('_', ' ')}")
         elif agreement == 'low':
-            logic.append(f"⚖️ Agents disagree: Visual says {v_rec.replace('_', ' ')}, Behavioral says {t_rec.replace('_', ' ')}")
+            logic.append(f"- Agents disagree: Visual says {v_rec.replace('_', ' ')}, Behavioral says {t_rec.replace('_', ' ')}")
             
             if decision == 'DENY_REFUND':
-                logic.append("🔴 Policy Override: Critical fraud patterns detected")
-                logic.append("📋 Marketplace policy requires denial despite visual approval")
+                logic.append("- Policy Override: Critical fraud patterns detected")
+                logic.append("- Marketplace policy requires denial despite visual approval")
             elif decision == 'ESCALATE':
-                logic.append("🟡 Escalation Required: Agent disagreement needs human review")
+                logic.append("- Escalation Required: Agent disagreement needs human review")
         
         if 'policy_enforcement' in policy_triggers:
-            logic.append("⚡ Policy Enforcement: Automated rules triggered")
+            logic.append("- Policy Enforcement: Automated rules triggered")
         
         if manual_review:
-            logic.append("👤 Manual Review Flagged: Complex case requires human oversight")
+            logic.append("- Manual Review Flagged: Complex case requires human oversight")
         
-        return '\n'.join(logic) if logic else "Standard decision process applied"
+        return '\n'.join(logic) if logic else "- Standard decision process applied"
 
     def _generate_enhanced_rationale(self, data: Dict, decision: str, agreement: str, policy_triggers: list) -> str:
         """Generate enhanced decision rationale."""
@@ -400,33 +395,33 @@ Behavioral Analysis ({t_conf:.0%} confidence)
         
         # Visual signals
         if visual_strength == 'critical':
-            signals.append("• 🚨 Critical visual concerns detected")
+            signals.append("• Critical visual concerns detected")
         elif visual_strength == 'strong':
-            signals.append("• ⚠️ Strong visual inconsistencies")
+            signals.append("• Strong visual inconsistencies")
         elif visual_strength == 'moderate':
-            signals.append("• 👁️ Moderate visual analysis completed")
+            signals.append("• Moderate visual analysis completed")
         else:
-            signals.append("• ✅ Visual analysis shows no major concerns")
+            signals.append("• Visual analysis shows no major concerns")
         
         # Behavioral signals  
         if behavioral_strength == 'critical':
-            signals.append("• 🚨 Critical fraud patterns detected")
+            signals.append("• Critical fraud patterns detected")
         elif behavioral_strength == 'strong':
-            signals.append("• 📈 High fraud risk indicators")
+            signals.append("• High fraud risk indicators")
         elif behavioral_strength == 'moderate':
-            signals.append("• 📊 Moderate behavioral risk detected")
+            signals.append("• Moderate behavioral risk detected")
         else:
-            signals.append("• ✅ Low behavioral risk profile")
+            signals.append("• Low behavioral risk profile")
         
         # Agent conflicts
         if conflicts and len(conflicts) > 0:
-            signals.append(f"• ⚖️ Agent disagreement detected")
+            signals.append(f"• Agent disagreement detected")
         
         # Manual review flag
         if data.get('manual_review_recommended'):
-            signals.append("• 👤 Manual review recommended")
+            signals.append("• Manual review recommended")
         
-        return '\n'.join(signals) if signals else "• ✅ No critical signals detected"
+        return '\n'.join(signals) if signals else "• No critical signals detected"
 
     def _generate_rationale(self, data: Dict, decision: str) -> str:
         """Generate concise decision rationale."""

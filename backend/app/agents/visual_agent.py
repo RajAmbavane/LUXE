@@ -42,17 +42,17 @@ def _call_vision(orig_b64: str | None, ret_b64: str | None, case_data: Dict) -> 
 
     # One-line context + compact JSON schema — ~120 text tokens
     prompt = (
-        f"Luxury fraud investigator. Case: {brand} {item}, dispute: {dispute}."
-        + (f" Notes: {notes}." if notes else "")
-        + "\nIMG1=original sold. IMG2=returned by buyer. Compare and respond JSON only:\n"
+        f"Professional fraud investigator analyzing luxury marketplace dispute. Case: {brand} {item}, dispute type: {dispute}."
+        + (f" Investigation notes: {notes}." if notes else "")
+        + "\nIMG1=original item sold. IMG2=returned item by buyer. Compare images and respond with JSON only:\n"
         '{"overall_similarity":0.0-1.0,"condition_score":0.0-1.0,"wear_level":0.0-1.0,'
         '"damage_detected":true/false,"damage_description":"","defects_found":0-5,'
         '"color_fade_detected":true/false,"authenticity_concerns":true/false,'
         '"authenticity_notes":"","is_same_item":true/false,"confidence":0.60-0.98,'
         '"recommendation":"APPROVE_REFUND|DENY_REFUND|ESCALATE",'
-        '"reasoning":"1-2 sentences"}'
-        "\nRules: APPROVE if similarity≥0.75 and condition≥0.70 and no auth concerns."
-        " DENY if similarity<0.50 or clear fraud. ESCALATE if uncertain."
+        '"reasoning":"Professional analysis in 1-2 sentences without emojis or symbols"}'
+        "\nDecision criteria: APPROVE if similarity≥0.75 and condition≥0.70 and no authenticity concerns."
+        " DENY if similarity<0.50 or clear fraud indicators detected. ESCALATE if uncertain or mixed signals."
     )
 
     content: list = [{"type": "text", "text": prompt}]

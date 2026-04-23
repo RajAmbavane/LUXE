@@ -1,7 +1,7 @@
 import { useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useVisualAnalysis, useCase, useCaseImages } from "@/hooks/useSupabaseData";
-import { Eye, AlertTriangle, CheckCircle2, Info, ShieldCheck, ShieldAlert, Scan } from "lucide-react";
+import { Eye, AlertTriangle, CheckCircle2, Info, Scan } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 function ScoreBar({ label, value, invert = false }: { label: string; value: number; invert?: boolean }) {
@@ -58,13 +58,6 @@ export default function VisualAnalysis() {
   if (colMat.color_fade_detected) signals.push({ label: "Color Fading",        severity: "medium", detail: "Noticeable color degradation vs original" });
   if (colMat.color_match < 0.75)  signals.push({ label: "Color Mismatch",      severity: "medium", detail: `Color match only ${Math.round((colMat.color_match||0)*100)}%` });
 
-  const recColor = {
-    APPROVE_REFUND: "text-success border-success/30 bg-success/5",
-    DENY_REFUND:    "text-critical border-critical/30 bg-critical/5",
-    ESCALATE:       "text-warning border-warning/30 bg-warning/5",
-    MANUAL_REVIEW:  "text-primary border-primary/30 bg-primary/5",
-  }[visual?.agent_recommendation || "MANUAL_REVIEW"] ?? "text-primary border-primary/30 bg-primary/5";
-
   if (isLoading) return (
     <div className="flex items-center justify-center h-64 text-muted-foreground text-sm">
       <Scan className="h-5 w-5 mr-2 animate-pulse" /> Analysing images...
@@ -85,46 +78,57 @@ export default function VisualAnalysis() {
         )}
       </div>
 
-      {/* Before / After images */}
+      {/* Before / After images - smaller size with proper scaling */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="glass-card p-5">
+        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="glass-card p-4">
           <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3">Original Listing</p>
-          <div className="aspect-square rounded-lg bg-muted/30 border border-border/30 overflow-hidden flex items-center justify-center">
+          <div className="aspect-[4/3] rounded-lg bg-muted/30 border border-border/30 overflow-hidden flex items-center justify-center">
             {originalImage?.image_url
-              ? <img src={originalImage.image_url} alt="Original" className="w-full h-full object-cover" />
-              : <div className="text-center space-y-2"><Eye className="h-8 w-8 text-primary mx-auto opacity-40" /><p className="text-xs text-muted-foreground">No image</p></div>
+              ? <img src={originalImage.image_url} alt="Original" className="w-full h-full object-contain" />
+              : <div className="text-center space-y-2"><Eye className="h-6 w-6 text-primary mx-auto opacity-40" /><p className="text-xs text-muted-foreground">No image</p></div>
             }
           </div>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="glass-card p-5">
+        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="glass-card p-4">
           <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3">Returned Item</p>
-          <div className={cn("aspect-square rounded-lg bg-muted/30 border overflow-hidden flex items-center justify-center", !isSameItem ? "border-critical/40" : "border-border/30")}>
+          <div className={cn("aspect-[4/3] rounded-lg bg-muted/30 border overflow-hidden flex items-center justify-center", !isSameItem ? "border-critical/40" : "border-border/30")}>
             {returnedImage?.image_url
-              ? <img src={returnedImage.image_url} alt="Returned" className="w-full h-full object-cover" />
-              : <div className="text-center space-y-2"><AlertTriangle className="h-8 w-8 text-critical mx-auto opacity-40" /><p className="text-xs text-muted-foreground">No image</p></div>
+              ? <img src={returnedImage.image_url} alt="Returned" className="w-full h-full object-contain" />
+              : <div className="text-center space-y-2"><AlertTriangle className="h-6 w-6 text-critical mx-auto opacity-40" /><p className="text-xs text-muted-foreground">No image</p></div>
             }
           </div>
         </motion.div>
       </div>
 
-      {/* AI Verdict banner */}
-      {visual && (
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-          className={cn("glass-card p-4 border flex items-center gap-4", recColor)}>
-          {visual.agent_recommendation === "APPROVE_REFUND"
-            ? <ShieldCheck className="h-6 w-6 shrink-0" />
-            : <ShieldAlert className="h-6 w-6 shrink-0" />}
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold">
-              AI Recommendation: {(visual.agent_recommendation || "").replace(/_/g, " ")}
-            </p>
-            {visual.reasoning && (
-              <p className="text-xs mt-0.5 opacity-80 line-clamp-2">{visual.reasoning}</p>
-            )}
+      {/* Detected Issues - moved right below images */}
+      {signals.length > 0 && (
+        <div className="space-y-3">
+          <p className="text-sm font-medium text-foreground flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-warning" />
+            Detected Issues
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {signals.map((s, i) => {
+              const Icon = s.severity === "high" ? AlertTriangle : s.severity === "medium" ? Info : CheckCircle2;
+              const cls  = s.severity === "high" ? "border-critical/30 bg-critical/5 text-critical"
+                         : s.severity === "medium" ? "border-warning/30 bg-warning/5 text-warning"
+                         : "border-success/30 bg-success/5 text-success";
+              return (
+                <motion.div key={s.label} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 + i * 0.05 }}
+                  className={cn("glass-card p-4 border", cls)}>
+                  <div className="flex items-start gap-3">
+                    <Icon className="h-4 w-4 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{s.label}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{s.detail}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
-          <span className="text-xs font-mono shrink-0">{Math.round((visual.confidence_score || 0) * 100)}% conf.</span>
-        </motion.div>
+        </div>
       )}
 
       {/* Score bars */}
@@ -140,33 +144,6 @@ export default function VisualAnalysis() {
             <ScoreBar label="Wear Level"            value={cond.wear_level           ?? 0} invert />
           </div>
         </motion.div>
-      )}
-
-      {/* Signal cards */}
-      {signals.length > 0 && (
-        <div className="space-y-3">
-          <p className="text-xs text-muted-foreground uppercase tracking-wider">Detected Issues</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {signals.map((s, i) => {
-              const Icon = s.severity === "high" ? AlertTriangle : s.severity === "medium" ? Info : CheckCircle2;
-              const cls  = s.severity === "high" ? "border-critical/30 bg-critical/5 text-critical"
-                         : s.severity === "medium" ? "border-warning/30 bg-warning/5 text-warning"
-                         : "border-success/30 bg-success/5 text-success";
-              return (
-                <motion.div key={s.label} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 + i * 0.07 }}
-                  className={cn("glass-card p-4 border", cls)}>
-                  <div className="flex items-start gap-3">
-                    <Icon className="h-4 w-4 mt-0.5 shrink-0" />
-                    <div>
-                      <p className="text-sm font-medium text-foreground">{s.label}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">{s.detail}</p>
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
       )}
 
       {/* Authenticity notes */}

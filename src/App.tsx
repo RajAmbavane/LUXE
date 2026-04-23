@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { LandingLayout } from "@/components/layout/LandingLayout";
 import Dashboard from "@/pages/Dashboard";
 import CaseQueue from "@/pages/CaseQueue";
 import CaseDetails from "@/pages/CaseDetails";
@@ -20,17 +21,42 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <AppLayout>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/cases" element={<CaseQueue />} />
-            <Route path="/cases/:id" element={<CaseDetails />} />
-            <Route path="/cases/:id/visual" element={<VisualAnalysis />} />
-            <Route path="/cases/:id/risk" element={<RiskReasoning />} />
-            <Route path="/cases/:id/actions" element={<ActionsApprovals />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AppLayout>
+        <Routes>
+          {/* Landing page with full-screen layout */}
+          <Route path="/" element={
+            <LandingLayout>
+              <Dashboard />
+            </LandingLayout>
+          } />
+          
+          {/* Internal app pages with sidebar */}
+          <Route path="/cases" element={
+            <AppLayout>
+              <CaseQueue />
+            </AppLayout>
+          } />
+          <Route path="/cases/:id" element={
+            <AppLayout>
+              <CaseDetails />
+            </AppLayout>
+          } />
+          <Route path="/cases/:id/visual" element={
+            <AppLayout>
+              <VisualAnalysis />
+            </AppLayout>
+          } />
+          <Route path="/cases/:id/risk" element={
+            <AppLayout>
+              <RiskReasoning />
+            </AppLayout>
+          } />
+          <Route path="/cases/:id/actions" element={
+            <AppLayout>
+              <ActionsApprovals />
+            </AppLayout>
+          } />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

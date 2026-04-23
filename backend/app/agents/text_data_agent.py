@@ -370,6 +370,7 @@ Analysis Guidelines:
 - Missing accessories + weight mismatch = critical fraud pattern
 - Immediate returns (<2 days) require careful evaluation
 - Consider carrier fault for shipping damage disputes
+- Use professional language without emojis or symbols in all responses
 """
         return prompt
 

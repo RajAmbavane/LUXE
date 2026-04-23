@@ -307,25 +307,6 @@ export default function RiskReasoning() {
           </div>
         </motion.div>
       )}
-
-      {/* Recommended action */}
-      {caseData?.recommended_action && (
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
-          className="glass-card p-5 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <ShieldAlert className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium text-foreground">Recommended Action</span>
-          </div>
-          <span className={cn("text-sm font-bold px-3 py-1 rounded-full",
-            caseData.recommended_action === "APPROVE_REFUND" ? "bg-success/10 text-success" :
-            caseData.recommended_action === "DENY_REFUND"    ? "bg-critical/10 text-critical" :
-            caseData.recommended_action === "ESCALATE"       ? "bg-warning/10 text-warning" :
-            "bg-primary/10 text-primary"
-          )}>
-            {caseData.recommended_action.replace(/_/g, " ")}
-          </span>
-        </motion.div>
-      )}
     </div>
   );
 }

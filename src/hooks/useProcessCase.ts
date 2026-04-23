@@ -1,67 +1,61 @@
-import { useEffect, useRef } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { apiUrl } from '@/config/environment';
 
-// Use relative URLs so it works in both development and production
-const BACKEND = "";
-
-/** Poll /processing-status every 5s and auto-refresh case data when processing finishes */
+// Processing status hook with better error handling
 export function useProcessingStatus() {
-  const qc = useQueryClient();
-  const wasProcessing = useRef(false);
-
-  const query = useQuery({
-    queryKey: ["processing_status"],
-    queryFn: async () => {
-      const r = await fetch(`${BACKEND}/processing-status`);
-      if (!r.ok) return { is_processing: false, pending_cases: 0 };
-      return r.json() as Promise<{ is_processing: boolean; pending_cases: number }>;
-    },
-    refetchInterval: 5000,   // poll every 5s
-    retry: false,
-  });
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [pendingCases, setPendingCases] = useState(0);
 
   useEffect(() => {
-    const isProcessing = query.data?.is_processing ?? false;
-    // When processing transitions from true → false, refresh all case data
-    if (wasProcessing.current && !isProcessing) {
-      qc.invalidateQueries({ queryKey: ["cases"] });
-      qc.invalidateQueries({ queryKey: ["agent_analysis"] });
-      qc.invalidateQueries({ queryKey: ["visual_analysis"] });
-      qc.invalidateQueries({ queryKey: ["risk_signals"] });
-      qc.invalidateQueries({ queryKey: ["decisions"] });
-    }
-    wasProcessing.current = isProcessing;
-  }, [query.data?.is_processing, qc]);
+    // Check processing status from backend
+    const checkStatus = async () => {
+      try {
+        const response = await fetch(apiUrl('/processing-status'));
+        if (response.ok) {
+          const data = await response.json();
+          setIsProcessing(data.is_processing || false);
+          setPendingCases(data.pending_cases || 0);
+        }
+      } catch (error) {
+        // Silently fail - just assume no processing is happening
+        setIsProcessing(false);
+        setPendingCases(0);
+      }
+    };
+
+    // Check immediately and then every 5 seconds
+    checkStatus();
+    const interval = setInterval(checkStatus, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   return {
-    isProcessing: query.data?.is_processing ?? false,
-    pendingCases: query.data?.pending_cases ?? 0,
+    isProcessing,
+    pendingCases
   };
 }
 
-/** Trigger manual processing of all pending cases */
-export async function triggerProcessing() {
-  const r = await fetch(`${BACKEND}/trigger-processing`, { method: "POST" });
-  return r.json();
-}
-
-/** Legacy: process a single case on demand (used by case detail pages) */
-export function useProcessCase(caseId: string | undefined) {
-  const qc = useQueryClient();
-
-  const processCase = async () => {
-    if (!caseId) return;
+export function triggerProcessing() {
+  const queryClient = useQueryClient();
+  
+  return async () => {
     try {
-      const r = await fetch(`${BACKEND}/process-case/${caseId}`, { method: "POST" });
-      if (!r.ok) return;
-      qc.invalidateQueries({ queryKey: ["cases", caseId] });
-      qc.invalidateQueries({ queryKey: ["agent_analysis", caseId] });
-      qc.invalidateQueries({ queryKey: ["visual_analysis", caseId] });
-      qc.invalidateQueries({ queryKey: ["risk_signals", caseId] });
-      qc.invalidateQueries({ queryKey: ["decisions", caseId] });
-      qc.invalidateQueries({ queryKey: ["case_images", caseId] });
-    } catch {}
+      const response = await fetch(apiUrl('/trigger-processing'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (response.ok) {
+        console.log('Processing triggered successfully');
+        // Refresh the cases data
+        queryClient.invalidateQueries({ queryKey: ['cases'] });
+      } else {
+        console.error('Failed to trigger processing');
+      }
+    } catch (error) {
+      console.error('Error triggering processing:', error);
+    }
   };
-
-  return { processCase };
 }

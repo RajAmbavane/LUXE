@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
+import { apiUrl } from "@/config/environment";
 
 // ── Cases ──────────────────────────────────────────────────────────────────
 
@@ -169,16 +170,24 @@ export function useFinalizeDecision() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (payload: { case_id: string; final_action: string; notes?: string | null }) => {
-      // Use relative URL so it works in both development and production
-      const response = await fetch(`/finalize-decision/${payload.case_id}`, {
+      const url = apiUrl(`/finalize-decision/${payload.case_id}`);
+      
+      const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ final_action: payload.final_action, notes: payload.notes }),
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "Failed to finalize decision");
+        const errorText = await response.text();
+        let errorMessage = "Failed to finalize decision";
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.detail || errorMessage;
+        } catch {
+          errorMessage = errorText || errorMessage;
+        }
+        throw new Error(errorMessage);
       }
 
       return response.json();
