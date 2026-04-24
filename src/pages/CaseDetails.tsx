@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useCase, useAuditLogs } from "@/hooks/useSupabaseData";
+import { useCase } from "@/hooks/useSupabaseData";
 import { RiskBadge, StatusBadge } from "@/components/shared/RiskBadge";
-import { User, Store, Clock } from "lucide-react";
+import { User, Store } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion } from "framer-motion";
 import { useEffect } from "react";
@@ -10,7 +10,6 @@ export default function CaseDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data: caseData, isLoading, refetch } = useCase(id);
-  const { data: auditLogs = [] } = useAuditLogs(id);
 
   // Trigger AI processing when case is viewed and status is pending
   useEffect(() => {
@@ -68,7 +67,6 @@ export default function CaseDetails() {
       <Tabs defaultValue="summary" className="space-y-4">
         <TabsList className="bg-muted/50 border border-border/50">
           <TabsTrigger value="summary" className="data-[state=active]:bg-primary/15 data-[state=active]:text-primary">Summary</TabsTrigger>
-          <TabsTrigger value="timeline" className="data-[state=active]:bg-primary/15 data-[state=active]:text-primary">Timeline</TabsTrigger>
         </TabsList>
 
         <TabsContent value="summary">
@@ -101,33 +99,6 @@ export default function CaseDetails() {
 
 
           </div>
-        </TabsContent>
-
-        <TabsContent value="timeline">
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-card p-5">
-            {auditLogs.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No timeline events yet.</p>
-            ) : (
-              <div className="space-y-0">
-                {auditLogs.map((event, i) => (
-                  <div key={event.id} className="flex gap-4 pb-6 last:pb-0">
-                    <div className="flex flex-col items-center">
-                      <div className="h-2.5 w-2.5 rounded-full bg-primary mt-1.5" />
-                      {i < auditLogs.length - 1 && <div className="w-px flex-1 bg-border/50 mt-1" />}
-                    </div>
-                    <div className="pb-2">
-                      <p className="text-sm text-foreground">{event.event_type}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Clock className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground">{new Date(event.timestamp).toLocaleString()}</span>
-                        {event.actor_name && <span className="text-xs text-primary">· {event.actor_name}</span>}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </motion.div>
         </TabsContent>
       </Tabs>
     </div>
